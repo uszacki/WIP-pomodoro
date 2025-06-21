@@ -12,9 +12,9 @@ class PomodoroApp(QWidget):
         self.time = QTime(0, 30, 0, 0)
 
         # BUttons
-        self.time_label = QLabel("30:00", self)
+        self.time_label = QLabel("label before userinput", self)
         self.test = QLineEdit(self)
-        self.test.setPlaceholderText("Test 123")
+        self.test.setPlaceholderText("hh:mm")
 
 
 
@@ -49,8 +49,9 @@ class PomodoroApp(QWidget):
         userinput = self.test.text()
 
         try:
-            minutes = int(userinput)
-            self.time = QTime(0, minutes, 0,  0)
+            hours = int(userinput[0:2])
+            minutes = int(userinput[3:5])
+            self.time = QTime(hours, minutes, 0,  0)
             self.update_display()
         except:
             self.time_label.setText("invalid")
@@ -72,7 +73,7 @@ class PomodoroApp(QWidget):
             self.timer.stop()
             self.time_label.settext("time's up!")
         else:
-            self.time_label.setText(self.time.toString("mm:ss.zzz")[:-1])
+            self.time_label.setText(self.time.toString("hh:mm:ss"))
             self.time = self.time.addMSecs(-10)
 
 
