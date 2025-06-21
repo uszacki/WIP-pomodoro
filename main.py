@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QLineEdit
 from PyQt5.QtCore import QTimer, QTime
 
 class PomodoroApp(QWidget):
@@ -9,10 +9,15 @@ class PomodoroApp(QWidget):
         self.setWindowTitle('Pomodoro')
 
 
-        self.time = QTime(0, 0, 0, 0)
+        self.time = QTime(0, 30, 0, 0)
 
         # BUttons
-        self.time_label = QLabel("00:00:00.00", self)
+        self.time_label = QLabel("30:00", self)
+        self.test = QLineEdit(self)
+        self.test.setPlaceholderText("Test 123")
+
+
+
         self.start_button = QPushButton("Start", self)
         self.stop_button = QPushButton("Stop", self)
         self.reset_button = QPushButton("Reset", self)
@@ -21,6 +26,7 @@ class PomodoroApp(QWidget):
         ######### self-reminder: fix this later
         self.layout = QVBoxLayout()
         self.layout.addWidget(self.time_label)
+        self.layout.addWidget(self.test)
         self.layout.addWidget(self.start_button)
         self.layout.addWidget(self.stop_button)
         self.layout.addWidget(self.reset_button)
@@ -36,7 +42,21 @@ class PomodoroApp(QWidget):
         self.stop_button.clicked.connect(self.stop)
         self.reset_button.clicked.connect(self.reset)
 
+
+
+
     def start(self):
+        userinput = self.test.text()
+
+        try:
+            minutes = int(userinput)
+            self.time = QTime(0, minutes, 0,  0)
+            self.update_display()
+        except:
+            self.time_label.setText("invalid")
+            return
+
+
         self.timer.start()
 
     def stop(self):
@@ -44,13 +64,16 @@ class PomodoroApp(QWidget):
 
     def reset(self):
         self.timer.stop()
-        self.time = QTime(0, 0, 0, 0)
+        self.time = QTime(0, 30, 0, 0)
         self.update_display()
 
     def update_display(self):
-        self.time_label.setText(self.time.toString("hh:mm:ss.zzz")[:-1])
-        self.time = self.time.addMSecs(10)
-
+        if self.time == QTime(0, 0, 0, 0):
+            self.timer.stop()
+            self.time_label.settext("time's up!")
+        else:
+            self.time_label.setText(self.time.toString("mm:ss.zzz")[:-1])
+            self.time = self.time.addMSecs(-10)
 
 
 if __name__ == "__main__":
