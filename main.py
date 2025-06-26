@@ -40,8 +40,6 @@ class PomodoroApp(QWidget):
         
         
         self.db = Database()
-
-
         self.time = QTime(0, 30, 0, 0)
 
         # BUttons
@@ -50,9 +48,8 @@ class PomodoroApp(QWidget):
         self.test.setPlaceholderText("H:MM")
 
 
-
         self.start_button = QPushButton("Start", self)
-        self.stop_button = QPushButton("Stop", self)
+        self.pause_button = QPushButton("Pause", self)
         self.reset_button = QPushButton("Reset", self)
 
 
@@ -61,7 +58,7 @@ class PomodoroApp(QWidget):
         self.layout.addWidget(self.time_label)
         self.layout.addWidget(self.test)
         self.layout.addWidget(self.start_button)
-        self.layout.addWidget(self.stop_button)
+        self.layout.addWidget(self.pause_button)
         self.layout.addWidget(self.reset_button)
         self.setLayout(self.layout)
 
@@ -72,54 +69,52 @@ class PomodoroApp(QWidget):
 
         # connectors
         self.start_button.clicked.connect(self.start)
-        self.stop_button.clicked.connect(self.stop)
+        self.pause_button.clicked.connect(self.stop)
         self.reset_button.clicked.connect(self.reset)
 
 
-
+        self.is_paused = False
 
     def start(self):
-        self.userinput = self.test.text()
+        
+        if self.is_paused == False:
+            self.userinput = self.test.text()
 
-        try:
-            self.hours = int(self.userinput[0])
-            self.minutes = int(self.userinput[2:4])
-            self.time = QTime(self.hours, self.minutes, 0,  0)
-            self.update_display()
-        except:
-            self.time_label.setText("invalid")
-            return
-
+            try:
+                self.hours = int(self.userinput[0])
+                self.minutes = int(self.userinput[2:4])
+                self.time = QTime(self.hours, self.minutes, 0,  0)
+                self.update_display()
+            except:
+                self.time_label.setText("invalid")
+                return
 
         self.timer.start()
-        self.test.clear()
-
 
         #db
         total_minutes = self.hours * 60 + self.minutes
         self.db.insert_table(total_minutes)
+        
 
     def stop(self):
         self.timer.stop()
+        self.is_paused = True
 
     def reset(self):
         self.timer.stop()
-
         try:
             hours = int(self.userinput[0])
             minutes = int(self.userinput[2:4])
             self.time = QTime(hours, minutes, 0, 0)
         except:
             self.time = QTime(0, 30, 0, 0)
-
         self.update_display()
-
 
 
     def update_display(self):
         if self.time == QTime(0, 0, 0, 0):
             self.timer.stop()
-            self.time_label.settext("time's up!")
+            self.time_label.setText("time's up!")
         else:
             self.time_label.setText(self.time.toString("hh:mm:ss"))
             self.time = self.time.addMSecs(-10)
@@ -130,3 +125,10 @@ if __name__ == "__main__":
     window = PomodoroApp()
     window.show()
     sys.exit(app.exec_())
+
+
+## to do
+
+# fix stop/start bug
+# add multiple inputs - qlineedit
+# add those to the db after a certain amount of user inputs (ex: stanislaw, studying python)
