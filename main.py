@@ -1,12 +1,45 @@
-import sys
+import sys, os
+import sqlite3
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QLineEdit
 from PyQt5.QtCore import QTimer, QTime
+
+
+###
+class Database:
+    def __init__(self):
+        path = os.path.dirname(os.path.abspath(__file__))
+        db = os.path.join(path, 'pomodoro.db')
+        self.conn = sqlite3.connect(db)
+        self.cursor = self.conn.cursor()
+        self.create_table()
+
+    def create_table(self):
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS datetime_test (
+                study_session_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                current_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+                userinput INT
+            );
+        ''')
+        self.conn.commit()
+
+    def insert_table(self, userinput):
+        self.cursor.execute('''
+            INSERT INTO datetime_test (userinput)
+            VALUES (?)
+        ''', (userinput,))
+        self.conn.commit()
+                          
+             
 
 class PomodoroApp(QWidget):
     def __init__(self):
         super().__init__()
         self.setGeometry(100, 60, 800, 600)
         self.setWindowTitle('Pomodoro')
+        
+        
+        self.db = Database()
 
 
         self.time = QTime(0, 30, 0, 0)
@@ -61,6 +94,11 @@ class PomodoroApp(QWidget):
         self.timer.start()
         self.test.clear()
 
+
+        #db
+        total_minutes = self.hours * 60 + self.minutes
+        self.db.insert_table(total_minutes)
+
     def stop(self):
         self.timer.stop()
 
@@ -75,6 +113,8 @@ class PomodoroApp(QWidget):
             self.time = QTime(0, 30, 0, 0)
 
         self.update_display()
+
+
 
     def update_display(self):
         if self.time == QTime(0, 0, 0, 0):
