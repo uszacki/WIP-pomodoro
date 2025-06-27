@@ -24,11 +24,11 @@ class Database:
         ''')
         self.conn.commit()
 
-    def insert_table(self, userinput):
+    def insert_table(self, inputdata):
         self.cursor.execute('''
             INSERT INTO datetime_test (name, activity, time)
             VALUES (?, ?, ?)
-        ''', (userinput,))          ######################################### fix this
+        ''', (inputdata['name'], inputdata['activity'], inputdata['time'])) 
         self.conn.commit()
                           
              
@@ -46,7 +46,7 @@ class PomodoroApp(QWidget):
         # BUttons
         self.time_label = QLabel("label before userinput", self)
         self.test = QLineEdit(self)
-        self.test.setPlaceholderText("H:MM")
+        self.test.setPlaceholderText("Your name")
 
 
         self.start_button = QPushButton("Start", self)
@@ -80,36 +80,43 @@ class PomodoroApp(QWidget):
         self.inputdata = {}
 
     def start(self):
+    
             if self.is_paused:
                 self.timer.start()
                 self.is_paused = False
                 self.time_label.setText(self.time.toString("hh:mm:ss"))
                 return
-        
+            
             self.userinput = self.test.text().strip()
 
             if self.inputcount == 0:
                 self.inputdata['name'] = self.userinput
+                self.test.setPlaceholderText('What are you studying? ')
+                self.test.clear()
                 self.inputcount += 1
+            
             elif self.inputcount == 1:
                 self.inputdata['activity'] = self.userinput
+                self.test.setPlaceholderText('H:MM')
+                self.test.clear()
                 self.inputcount += 1
-            elif self.inputcount == 2:
+            
+            elif self.inputcount == 2: 
                 try:
                     self.hours = int(self.userinput[0])
                     self.minutes = int(self.userinput[2:4])
                     self.time = QTime(self.hours, self.minutes, 0,  0)
+                    self.inputdata['time'] = (self.hours * 60) + self.minutes
                     self.update_display()
-                    print(self.inputdata)
+                    print(self.inputdata) ###### kv check
+                
                 except:
                     self.time_label.setText("invalid")
                     return
 
                 self.timer.start()
-
                 #db
-                #total_minutes = self.hours * 60 + self.minutes
-                #self.db.insert_table(total_minutes)
+                self.db.insert_table(self.inputdata)
         
 
     def stop(self):
@@ -136,6 +143,7 @@ class PomodoroApp(QWidget):
             self.time = self.time.addMSecs(-10)
 
 
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = PomodoroApp()
@@ -144,5 +152,4 @@ if __name__ == "__main__":
 
 
 ## to do
-# add multiple inputs - qlineedit
-# add those to the db after a certain amount of user inputs (ex: stanislaw, studying python)
+# restrict user input
