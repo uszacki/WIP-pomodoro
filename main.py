@@ -17,17 +17,18 @@ class Database:
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS datetime_test (
                 study_session_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                current_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-                userinput INT
+                name VARCHAR(50),
+                activity VARCHAR(50),
+                time INT    
             );
         ''')
         self.conn.commit()
 
     def insert_table(self, userinput):
         self.cursor.execute('''
-            INSERT INTO datetime_test (userinput)
-            VALUES (?)
-        ''', (userinput,))
+            INSERT INTO datetime_test (name, activity, time)
+            VALUES (?, ?, ?)
+        ''', (userinput,))          ######################################### fix this
         self.conn.commit()
                           
              
@@ -75,25 +76,40 @@ class PomodoroApp(QWidget):
 
         self.is_paused = False
 
+        self.inputcount = 0
+        self.inputdata = {}
+
     def start(self):
-        
-        if self.is_paused == False:
-            self.userinput = self.test.text()
-
-            try:
-                self.hours = int(self.userinput[0])
-                self.minutes = int(self.userinput[2:4])
-                self.time = QTime(self.hours, self.minutes, 0,  0)
-                self.update_display()
-            except:
-                self.time_label.setText("invalid")
+            if self.is_paused:
+                self.timer.start()
+                self.is_paused = False
+                self.time_label.setText(self.time.toString("hh:mm:ss"))
                 return
+        
+            self.userinput = self.test.text().strip()
 
-        self.timer.start()
+            if self.inputcount == 0:
+                self.inputdata['name'] = self.userinput
+                self.inputcount += 1
+            elif self.inputcount == 1:
+                self.inputdata['activity'] = self.userinput
+                self.inputcount += 1
+            elif self.inputcount == 2:
+                try:
+                    self.hours = int(self.userinput[0])
+                    self.minutes = int(self.userinput[2:4])
+                    self.time = QTime(self.hours, self.minutes, 0,  0)
+                    self.update_display()
+                    print(self.inputdata)
+                except:
+                    self.time_label.setText("invalid")
+                    return
 
-        #db
-        total_minutes = self.hours * 60 + self.minutes
-        self.db.insert_table(total_minutes)
+                self.timer.start()
+
+                #db
+                #total_minutes = self.hours * 60 + self.minutes
+                #self.db.insert_table(total_minutes)
         
 
     def stop(self):
@@ -128,7 +144,5 @@ if __name__ == "__main__":
 
 
 ## to do
-
-# fix stop/start bug
 # add multiple inputs - qlineedit
 # add those to the db after a certain amount of user inputs (ex: stanislaw, studying python)
