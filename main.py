@@ -1,10 +1,10 @@
 import sys, os
 import sqlite3
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QLineEdit
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QLineEdit, QListWidget
 from PyQt5.QtCore import QTimer, QTime
 
 
-###
+
 class Database:
     def __init__(self):
         path = os.path.dirname(os.path.abspath(__file__))
@@ -30,8 +30,13 @@ class Database:
             VALUES (?, ?, ?)
         ''', (inputdata['name'], inputdata['activity'], inputdata['time'])) 
         self.conn.commit()
-                          
-             
+    
+    def get_last_entries(self):
+        self.cursor.execute('''
+            SELECT name, activity, time FROM datetime_test
+            ORDER BY study_session_id DESC LIMIT 10
+        ''')
+        return self.cursor.fetchall()
 
 class PomodoroApp(QWidget):
     def __init__(self):
@@ -53,9 +58,14 @@ class PomodoroApp(QWidget):
         self.pause_button = QPushButton("Pause", self)
         self.reset_button = QPushButton("Reset", self)
 
+        self.entry_list = QListWidget(self)
+        self.entry_list.setFixedHeight(180)
+        self.entry_list.setFixedWidth(250)
+
 
         ######### self-reminder: fix this later
         self.layout = QVBoxLayout()
+        self.layout.addWidget(self.entry_list)
         self.layout.addWidget(self.time_label)
         self.layout.addWidget(self.test)
         self.layout.addWidget(self.start_button)
@@ -78,6 +88,8 @@ class PomodoroApp(QWidget):
 
         self.inputcount = 0
         self.inputdata = {}
+
+        self.update_entry_list()
 
     def start(self):
     
@@ -142,6 +154,12 @@ class PomodoroApp(QWidget):
             self.time_label.setText(self.time.toString("hh:mm:ss"))
             self.time = self.time.addMSecs(-10)
 
+    def update_entry_list(self):
+        entries = self.db.get_last_entries()
+        self.entry_list.clear()
+        for e in entries:
+            self.entry_list.addItem(f"{e[0]} - {e[1]} ({e[2]} min)")
+
 
 
 if __name__ == "__main__":
@@ -152,4 +170,5 @@ if __name__ == "__main__":
 
 
 ## to do
+# add diff page to check entries from sql
 # restrict user input
