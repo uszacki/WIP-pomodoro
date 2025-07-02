@@ -1,6 +1,6 @@
 import sys, os
 import sqlite3
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QLineEdit, QListWidget
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QLineEdit, QListWidget, QHBoxLayout
 from PyQt5.QtCore import QTimer, QTime
 
 
@@ -41,7 +41,7 @@ class Database:
 class PomodoroApp(QWidget):
     def __init__(self):
         super().__init__()
-        self.setGeometry(100, 60, 800, 600)
+        self.setGeometry(100, 60, 300, 300)
         self.setWindowTitle('Pomodoro')
         
         
@@ -63,16 +63,42 @@ class PomodoroApp(QWidget):
         self.entry_list.setFixedWidth(250)
 
 
-        ######### self-reminder: fix this later
-        self.layout = QVBoxLayout()
-        self.layout.addWidget(self.entry_list)
-        self.layout.addWidget(self.time_label)
-        self.layout.addWidget(self.test)
-        self.layout.addWidget(self.start_button)
-        self.layout.addWidget(self.pause_button)
-        self.layout.addWidget(self.reset_button)
-        self.setLayout(self.layout)
+        ######### kinda fixed?
+        main_layout = QVBoxLayout()
+        top_layout = QHBoxLayout()
+        list_layout = QVBoxLayout()
+        buttons_layout = QVBoxLayout()
 
+        list_layout.addWidget(self.entry_list)
+
+        buttons_layout.addWidget(self.start_button)
+        buttons_layout.addWidget(self.pause_button)
+        buttons_layout.addWidget(self.reset_button)
+
+        top_layout.addLayout(list_layout)
+        top_layout.addLayout(buttons_layout)
+
+        main_layout.addWidget(self.time_label)
+        main_layout.addLayout(top_layout)
+        main_layout.addWidget(self.test)
+
+        self.setLayout(main_layout)
+
+        
+        
+        ##stylesheet
+        self.setStyleSheet("""QLabel {
+                font-size: 25px;
+                color: #333;
+                font-weight: bold;
+                padding: 5px;
+            }
+                           """)
+        
+
+        
+
+        ## timer
         self.timer = QTimer(self)
         self.timer.setInterval(10)  # 10ms = 0.01s (centésimos)
         self.timer.timeout.connect(self.update_display)
