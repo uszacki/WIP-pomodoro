@@ -48,7 +48,19 @@ class PomodoroApp(QWidget):
         self.db = Database()
         self.time = QTime(0, 30, 0, 0)
 
-        # BUttons
+        self.widgets()
+        self.layouts()
+        self.timer()
+        self.connectors()
+        self.normal_theme()
+        self.update_entry_list()
+        
+        self.is_paused = False
+        self.inputcount = 0
+        self.inputdata = {}
+
+
+    def widgets(self):
         self.time_label = QLabel("label before userinput", self)
         self.test = QLineEdit(self)
         self.test.setPlaceholderText("Your name")
@@ -57,12 +69,15 @@ class PomodoroApp(QWidget):
         self.start_button = QPushButton("Start", self)
         self.pause_button = QPushButton("Pause", self)
         self.reset_button = QPushButton("Reset", self)
+        self.theme_button = QPushButton("⚙️")
+        self.theme_button.setFixedSize(25, 25)
 
         self.entry_list = QListWidget(self)
         self.entry_list.setFixedHeight(180)
         self.entry_list.setFixedWidth(250)
 
 
+    def layouts(self):
         ######### kinda fixed?
         main_layout = QVBoxLayout()
         top_layout = QHBoxLayout()
@@ -79,43 +94,33 @@ class PomodoroApp(QWidget):
         top_layout.addLayout(buttons_layout)
 
         main_layout.addWidget(self.time_label)
+        main_layout.addWidget(self.theme_button)
         main_layout.addLayout(top_layout)
         main_layout.addWidget(self.test)
 
         self.setLayout(main_layout)
 
-        
-        
-        ##stylesheet
+
+    def timer(self):
+        self.timer = QTimer(self)
+        self.timer.setInterval(10)  # 10ms = 0.01s (centésimos)
+        self.timer.timeout.connect(self.update_display)
+
+    def connectors(self):
+        self.start_button.clicked.connect(self.start)
+        self.pause_button.clicked.connect(self.stop)
+        self.reset_button.clicked.connect(self.reset)
+
+    def normal_theme(self):
         self.setStyleSheet("""QLabel {
                 font-size: 25px;
                 color: #333;
                 font-weight: bold;
                 padding: 5px;
-            }
-                           """)
-        
-
-        
-
-        ## timer
-        self.timer = QTimer(self)
-        self.timer.setInterval(10)  # 10ms = 0.01s (centésimos)
-        self.timer.timeout.connect(self.update_display)
-
-
-        # connectors
-        self.start_button.clicked.connect(self.start)
-        self.pause_button.clicked.connect(self.stop)
-        self.reset_button.clicked.connect(self.reset)
-
-
-        self.is_paused = False
-
-        self.inputcount = 0
-        self.inputdata = {}
-
-        self.update_entry_list()
+            }""")
+    
+    def dark_theme(self):
+        pass
 
     def start(self):
     
@@ -198,3 +203,4 @@ if __name__ == "__main__":
 ## to do
 # add diff page to check entries from sql
 # restrict user input
+# set up dark theme
