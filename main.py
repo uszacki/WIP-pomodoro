@@ -66,7 +66,7 @@ class PomodoroApp(QWidget):
         self.test.setPlaceholderText("Your name")
 
 
-        self.start_button = QPushButton("Start", self)
+        self.start_button = QPushButton("Confirm", self)
         self.pause_button = QPushButton("Pause", self)
         self.reset_button = QPushButton("Reset", self)
         self.theme_button = QPushButton("⚙️")
@@ -144,12 +144,14 @@ class PomodoroApp(QWidget):
             self.userinput = self.test.text().strip()
 
             if self.inputcount == 0:
+
                 self.inputdata['name'] = self.userinput
                 self.test.setPlaceholderText('What are you studying? ')
                 self.test.clear()
                 self.inputcount += 1
             
             elif self.inputcount == 1:
+
                 self.inputdata['activity'] = self.userinput
                 self.test.setPlaceholderText('H:MM')
                 self.test.clear()
@@ -160,26 +162,31 @@ class PomodoroApp(QWidget):
                     self.hours = int(self.userinput[0])
                     self.minutes = int(self.userinput[2:4])
                     self.time = QTime(self.hours, self.minutes, 0,  0)
-                    self.inputdata['time'] = (self.hours * 60) + self.minutes
+                    self.elapsed_ms = 0
+                    #self.inputdata['time'] = (self.hours * 60) + self.minutes
                     self.update_display()
                     print(self.inputdata) ###### kv check
                 
                 except:
                     self.time_label.setText("invalid")
                     return
-
+                
                 self.timer.start()
+                self.start_button.setText("Restart")
                 #db
-                self.db.insert_table(self.inputdata)
+                #self.db.insert_table(self.inputdata)
                 self.update_entry_list()
         
 
     def stop(self):
         self.timer.stop()
+        self.start_button.setText("Resume")
         self.is_paused = True
+        self.save_actual_time()
 
     def reset(self):
         self.timer.stop()
+        self.start_button.setText("Start")
         try:
             hours = int(self.userinput[0])
             minutes = int(self.userinput[2:4])
@@ -188,20 +195,37 @@ class PomodoroApp(QWidget):
             self.time = QTime(0, 30, 0, 0)
         self.update_display()
 
+        # reset everythjing
+        self.inputcount = 0
+        self.inputdata = {}
+        self.elapsed_ms = 0
+        self.test.setPlaceholderText("Your name")
+        self.test.clear()
+        self.start_button.setText("Confirm")
 
     def update_display(self):
         if self.time == QTime(0, 0, 0, 0):
             self.timer.stop()
-            self.time_label.setText("time's up!")
+            self.time_label.setText("Time's up!")
+            self.save_actual_time()
         else:
             self.time_label.setText(self.time.toString("hh:mm:ss"))
             self.time = self.time.addMSecs(-10)
+            self.elapsed_ms += 10
 
     def update_entry_list(self):
         entries = self.db.get_last_entries()
         self.entry_list.clear()
         for e in entries:
             self.entry_list.addItem(f"{e[0]} | {e[1]} | {e[2]} min")
+
+    def save_actual_time(self):
+        if len(self.inputdata) < 2: 
+            return
+        actual_minutes = max(1, self.elapsed_ms // 60000)  # 1m min
+        self.inputdata['time'] = actual_minutes
+        self.db.insert_table(self.inputdata)
+        self.update_entry_list()
 
 
 
@@ -213,6 +237,7 @@ if __name__ == "__main__":
 
 
 ## to do
-# add diff page to check entries from sql
+# keep same registry for time if user pauses, only add new one if user resets
 # restrict user input
-# set up dark theme
+# set up normal/dark theme
+# add diff page to check entries from sql
