@@ -61,7 +61,7 @@ class PomodoroApp(QWidget):
 
 
     def widgets(self):
-        self.time_label = QLabel("label before userinput", self)
+        self.time_label = QLabel("00:00:00", self)
         self.test = QLineEdit(self)
         self.test.setPlaceholderText("Your name")
 
@@ -76,6 +76,7 @@ class PomodoroApp(QWidget):
         self.entry_list.setFixedHeight(180)
         self.entry_list.setFixedWidth(250)
 
+        self.list_header = QLabel("Name | Subject | Time studied - Individual Sessions")
 
     def layouts(self):
         ######### kinda fixed?
@@ -84,6 +85,7 @@ class PomodoroApp(QWidget):
         list_layout = QVBoxLayout()
         buttons_layout = QVBoxLayout()
 
+        list_layout.addWidget(self.list_header)
         list_layout.addWidget(self.entry_list)
 
         buttons_layout.addWidget(self.start_button)
@@ -112,11 +114,20 @@ class PomodoroApp(QWidget):
         self.reset_button.clicked.connect(self.reset)
 
     def normal_theme(self):
-        self.setStyleSheet("""QLabel {
+        self.time_label.setObjectName("timeLabel")
+        self.list_header.setObjectName("listHeader")
+        self.setStyleSheet("""
+                QLabel#timeLabel {
                 font-size: 25px;
                 color: #333;
                 font-weight: bold;
                 padding: 5px;
+            }
+                QLabel#listHeader {
+                font-size: 12px;
+                color: #333;
+                font-weight: bold;
+                padding: 0px;
             }""")
     
     def dark_theme(self):
@@ -160,6 +171,7 @@ class PomodoroApp(QWidget):
                 self.timer.start()
                 #db
                 self.db.insert_table(self.inputdata)
+                self.update_entry_list()
         
 
     def stop(self):
@@ -189,7 +201,7 @@ class PomodoroApp(QWidget):
         entries = self.db.get_last_entries()
         self.entry_list.clear()
         for e in entries:
-            self.entry_list.addItem(f"{e[0]} - {e[1]} ({e[2]} min)")
+            self.entry_list.addItem(f"{e[0]} | {e[1]} | {e[2]} min")
 
 
 
